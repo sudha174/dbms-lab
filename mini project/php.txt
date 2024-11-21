@@ -1,0 +1,199 @@
+php code
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Fetch form data
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $address = $_POST['address'];
+    $paid_status = $_POST['paid'];
+
+    // Check if all fields are filled
+    if (!empty($name) && !empty($email) && !empty($phone) && !empty($address)) {
+        // Database connection details
+        $host = "localhost";
+        $dbusername = "root";
+        $dbpassword = "";
+        $dbname = "database"; // Make sure this is your actual database name
+
+        // Create a new MySQLi connection
+        $conn = new mysqli($host, $dbusername, $dbpassword, $dbname);
+
+        // Check for connection errors
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        } else {
+            // SQL query to check if the email already exists
+            $SELECT = "SELECT email FROM member WHERE email = ? LIMIT 1";
+            // SQL query to insert new member data
+            $INSERT = "INSERT INTO member (name, email, phone, address, paid_status) VALUES (?, ?, ?, ?, ?)";
+
+            // Prepare and execute the SELECT statement
+            $stmt = $conn->prepare($SELECT);
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $stmt->store_result();
+            $rnum = $stmt->num_rows;
+
+            // Check if email is already registered
+            if ($rnum == 0) {
+                // Close the SELECT statement
+                $stmt->close();
+
+                // Prepare and execute the INSERT statement
+                $stmt = $conn->prepare($INSERT);
+                $stmt->bind_param("sssss", $name, $email, $phone, $address, $paid_status);
+                $stmt->execute();
+                echo "New record inserted successfully";
+            } else {
+                echo "Someone already registered using this email";
+            }
+
+            // Close the statement and connection
+            $stmt->close();
+            $conn->close();
+        }
+    } else {
+        echo "All fields are required";
+        die();
+    }
+}
+?>
+html code
+<?php 1nolode('server.php')?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Medical Information Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #87CEEB; /* Sky blue background */
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .form-section input, .form-section select, .form-section textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-section textarea {
+            resize: vertical;
+            height: 100px;
+        }
+        .form-section input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .form-section input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .form-section input[type="reset"] {
+            background-color: #f44336;
+            color: white;
+            cursor: pointer;
+        }
+        .form-section input[type="reset"]:hover {
+            background-color: #e60000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Medical Information Form</h2>
+        <form action="#" method="POST">
+
+            <!-- Personal Details Section -->
+            <div class="form-section">
+                <h3>Personal Details</h3>
+                <label for="full-name">Full Name:</label>
+                <input type="text" id="full-name" name="full_name" required>
+
+                <label for="dob">Date of Birth:</label>
+                <input type="date" id="dob" name="dob" required>
+
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <label for="contact-number">Contact Number:</label>
+                <input type="tel" id="contact-number" name="contact_number" pattern="[0-9]{10}" required>
+            </div>
+
+            <!-- Emergency Contact Section -->
+            <div class="form-section">
+                <h3>Emergency Contact</h3>
+                <label for="emergency-name">Emergency Contact Name:</label>
+                <input type="text" id="emergency-name" name="emergency_name" required>
+
+                <label for="emergency-phone">Emergency Contact Phone:</label>
+                <input type="tel" id="emergency-phone" name="emergency_phone" pattern="[0-9]{10}" required>
+
+                <label for="relationship">Relationship to Attendee:</label>
+                <input type="text" id="relationship" name="relationship" required>
+            </div>
+
+            <!-- Medical Information Section -->
+            <div class="form-section">
+                <h3>Medical Information</h3>
+                <label for="medical-conditions">Known Medical Conditions:</label>
+                <textarea id="medical-conditions" name="medical_conditions" placeholder="e.g. Diabetes, Asthma" required></textarea>
+
+                <label for="allergies">Allergies (if any):</label>
+                <textarea id="allergies" name="allergies" placeholder="e.g. Penicillin, Nuts"></textarea>
+
+                <label for="medications">Current Medications:</label>
+                <textarea id="medications" name="medications" placeholder="e.g. Insulin, Blood Pressure Medication"></textarea>
+
+                <label for="primary-doctor">Primary Care Doctor's Name:</label>
+                <input type="text" id="primary-doctor" name="primary_doctor">
+
+                <label for="doctor-phone">Doctor's Contact Number:</label>
+                <input type="tel" id="doctor-phone" name="doctor_phone" pattern="[0-9]{10}">
+            </div>
+
+            <!-- Submit & Reset buttons -->
+            <div class="form-section">
+                <input type="submit" value="Submit">
+                <input type="reset" value="Reset">
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
+
+
